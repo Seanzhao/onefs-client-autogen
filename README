@@ -1,0 +1,81 @@
+
++--------------+    +----------------+
+| onefs client |    | onefs protocol |
++--------------+    +----------------+
+
+* onefs client handles the http connection, session and authentication.
+  e.g. the parameters include endpoint, username, password. This part
+  is supposed to be very stable across different build.
+
+  The interface may look like
+    OnefsResponse OnefsClient.execute(OnefsRequest request)
+
+* onefs protocol handles the message format. For onefs case, it is based
+  on http protocol, and json payload. So the onefs protocol includes some-
+  thing like: url, method(GET, PUT, etc), headers, parameters(?q=xxx),
+  request json schema, response json schema. This part might be not stable
+  across different build.
+
+  The request and response should be subclass of OnefsRequest and
+  OnefsResponse.
+
++----------+
+| code gen |
++----------+
+
+* For the unstable part of onefs protocol, it is also the most tedious part
+  to code. Especially the request/response json schema. Fortunately onefs
+  provides describe mechanism, which describes what a specific URL means.
+
+  For example,
+
+======================================================================================
+  $ curl https://10.110.184.210:8080/platform/1/protocols/nfs/settings/export?describe
+
+  /platform/1/protocols/nfs/settings/global
+  Overview:
+    This resource represents global configuration for NFS.
+
+  Method GET:
+    Retrieve the NFS configuration.
+
+    Query Arguments:
+      scope=[effective|user|default]
+        If specified as effective or not specified, all fields are returned.  If
+        specified as user, only fields with non-default values are shown.  If
+        specified as default, the original values are returned.
+
+  Method PUT:
+    Modify the default values for NFS exports. All input fields are optional, but
+    one or more must be supplied.
+
+  GET Response Body Schema:
+{
+	"properties" :
+	{
+		"settings" :
+		{
+			"description" : "Global NFS configuration.",
+			"properties" :
+			{
+				"lock_protection" :
+				{
+					"description" : "",
+					"type" : "integer"
+				}
+			},
+			"type": "object"
+		}
+	},
+	"type": "object"
+}
+======================================================================================
+
+  By parsing the describe output, we can get everything we need to generate onefs
+  protocol, meaning URL, method, parameters, request schema, response schema. But
+  only schema is well-formatted. We hope the output is faithfully generated from
+  the isilon build. In that way we can reliably generate the onefs protocol.
+
+* the codegen is not necessarily written in java.
+
+* the onefs client and onefs protocol are all based on java, currently.
