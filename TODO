@@ -1,5 +1,5 @@
 * skelton codegen
-* skelton onefs_client
+* [sean will take care] skelton onefs_client
 * [done] skelton onefs_client_base
 * skelton sample onefs_protocol, which could be used as a target of generated code.
 * skelton sample code to use onefs client/protocol/base
